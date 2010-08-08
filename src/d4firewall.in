@@ -1,0 +1,128 @@
+#!/bin/sh
+##########################################################################
+#     This file is part of d4firewall
+#
+#     d4firewall is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 2 of the License, or
+#     (at your option) any later version.
+#
+#     d4firewall is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software
+#     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+##########################################################################
+#     Copyright (C) 2010 Matteo Chesi
+##########################################################################
+#
+# d4firewall Init Script
+#
+# Author: Matteo Chesi < d4lamar(at)gmail.com >
+#
+### BEGIN INIT INFO
+# Provides:          d4firewall
+# Required-Start:    $syslog $network
+# Should-Start: 
+# Required-Stop:     $syslog $network
+# Should-Stop: 
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: a Standard Rude & Simple Firewall Script based on iptables
+# Description: a Standard Rude & Simple Firewall Script based on iptables
+### END INIT INFO
+
+NAME="d4firewall"
+
+# Check for missing binaries (stale symlinks should not happen)
+# Note: Special treatment of stop for LSB conformance
+IPTABLES_BIN=@IPTABLES_BIN@
+IPTABLES_SAVE_BIN=@IPTABLES_SAVE_BIN@
+IPTABLES_RESTORE_BIN=@IPTABLES_RESTORE_BIN@
+( test -x $IPTABLES_BIN  && test -x $IPTABLES_SAVE_BIN && test -x $IPTABLES_RESTORE_BIN ) || { echo "IPTABLES not installed"; 
+	if [ "$1" = "stop" ]; then exit 0;
+	else exit 5; fi; }
+
+# Check for existence of needed config file and read it
+UTILS_LIB='/usr/share/d4firewall/libs/utils.sh'
+FUNCTIONS_LIB='/usr/share/d4firewall/libs/functions.sh'
+D4FIREWALL_CONFIG='/etc/d4firewall/d4firewall.conf'
+ENABLED_CONFIG='/etc/d4firewall/enabled-rules.conf'
+DISABLED_CONFIG='/etc/d4firewall/disabled-rules.conf'
+( test -r $ENABLED_CONFIG && test -r $DISABLED_CONFIG && test -r $FUNCTIONS_LIB && test -r $UTILS_LIB  ) || { echo "CONFIGURATION FILES not existing";
+	if [ "$1" = "stop" ]; then exit 0;
+	else exit 6; fi; }
+
+. $UTILS_LIB
+. $FUNCTIONS_LIB
+
+if [ -r $D4FIREWALL_CONFIG ];then
+    . $D4FIREWALL_CONFIG
+fi
+
+# Return values acc. to LSB for all commands but status:
+# 0	  - success
+# 1       - generic or unspecified error
+# 2       - invalid or excess argument(s)
+# 3       - unimplemented feature (e.g. "reload")
+# 4       - user had insufficient privileges
+# 5       - program is not installed
+# 6       - program is not configured
+# 7       - program is not running
+# 8--199  - reserved (8--99 LSB, 100--149 distrib, 150--199 appl)
+# 
+# Note that starting an already running service, stopping
+# or restarting a not-running service as well as the restart
+# with force-reload (in case signaling is not supported) are
+# considered a success.
+
+# Return value is slightly different for the status command:
+# 0 - service up and running
+# 1 - service dead, but /var/run/  pid  file exists
+# 2 - service dead, but /var/lock/ lock file exists
+# 3 - service not running (unused)
+# 4 - service status unknown :-(
+# 5--199 reserved (5--99 LSB, 100--149 distro, 150--199 appl.)
+
+case "$1" in
+  start)
+        log_begin  "Starting $NAME"
+        do_start
+        init_exit $?
+        ;;
+  stop)
+        log_begin "Stopping $NAME"
+        do_stop
+        init_exit $?
+        ;;
+  save-enabled)
+        log_begin "$NAME: Saving Active Iptables Rules as  ENABLED in:\n $ENABLED_CONFIG"
+        do_save_enabled
+        init_exit $?
+        ;;
+  save-disabled)
+        log_begin "$NAME: Saving Active Iptables Rules as DISABLED in:\n $DISABLED_CONFIG"
+        do_save_disabled
+        init_exit $?
+        ;;
+  restart|force-reload)
+        $0 stop
+        $0 start
+        # Remember status and be quiet
+        exit $?
+        ;;
+  status)
+        log_begin "$NAME:               "
+        do_status
+        status_exit $?
+        ;;
+  *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status|save-enabled|save-disabled}" >&2
+        exit 1
+        ;;
+esac
+

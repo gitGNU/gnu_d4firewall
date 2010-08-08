@@ -1,0 +1,77 @@
+.TH D4FIREWALL 8 "Jul 07, 2010" "" ""
+.\"##########################################################################
+.\"
+.\" Copyright (C) 2010 Matteo Chesi
+.\" Permission is granted to copy, distribute and/or modify this document
+.\" under the terms of the GNU Free Documentation License, Version 1.3
+.\" or any later version published by the Free Software Foundation;
+.\" with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+.\"    
+.\" You should have received a copy of the FDL on your system,
+.\" it is also available on-line at the GNU copyleft site. 
+.\"
+.\"##########################################################################
+.\"
+.\" Man page written by Matteo Chesi <d4lamar@gmail.com>
+.\"
+.\"
+.SH NAME
+/etc/init.d/d4firewall \(em iptables-based firewall
+.SH SYNOPSIS
+\fB/etc/init.d/d4firewall\fP [start|stop|status|restart|force-reload|save-enabled|save-disabled]
+.SH DESCRIPTION
+.PP
+.B d4firewall
+is an iptables-based firewall script written in bash.
+.br
+It's a simple and useful script to manage iptables rules.
+.br
+It stores two set of rules, enabled-rules that correspond to firewall enabled
+status, and disabled-rules that correspond to firewall disabled status.
+It's possible to define variables to be used in rules files.
+.TP
+\fBd4firewall.conf\fP contains variables defintions to be used in firewall
+rules. This file can be found in /etc/d4firewall.
+.TP
+\fBenabled-rules.conf\fP contains the set of rules that must be loaded when
+the firewall is enabled. This file can be found in /etc/d4firewall.
+.TP
+\fBdisabled-rules.conf\fP contains the set of rules that must be loaded when
+the firewall is disabled. This file can be found in /etc/d4firewall.
+.TP
+\fBstart\fP 
+to load iptables rules from \fIenabled-rules.conf\fP.
+It's quite as a simple "iptables-restore".
+.TP
+\fBstop\fP
+to load iptables rules from \fIdisabled-rules.conf\fP.
+It's quite as a simple "iptables-restore".
+.TP
+\fBrestart|force-reload\fP
+to stop and then restart. It doesn't do anything more than a simple "start".
+.TP
+\fBstatus\fP
+to check active iptables rules.
+If they are the same as \fIenabled-rules.conf\fP status is [\fBrunning\fP].
+If they are the same as \fIdisabled-rules.conf\fP status is [\fBunused\fP].
+Otherwise status is [\fBunknown\fP] and differences between loaded rules and
+enabled/disabled set of rules are shown.
+.TP
+\fBsave-enabled\fP
+to save active iptables set of rules in \fIenabled-rules.conf\fP. 
+It's quite as a simple "iptables-save", but it tries to preserve any variable and comment 
+that was in previous enabled set of rules. 
+.TP
+\fBsave-disabled\fP
+to save active iptables set of rules in \fIdisabled-rules.conf\fP. 
+It's quite as a simple "iptables-save", but it tries to preserve any variable and comment 
+that was in previous disabled set of rules. 
+.SH BUGS
+None known as of d4firewall-0.4 release
+.SH AUTHOR
+Matteo Chesi <d4lamar@gmail.com>
+.PP
+This document is distributed under the terms of the FDL (GNU Free Documentation License) version 1.3 or later.
+You should have received a copy of the FDL on your system, it is also available on-line at the GNU copyleft site. 
+.SH SEE ALSO
+\fBiptables\fP(8),  \fBiptables\-save\fP(8), \fBiptables-restore\fP(8) 
